@@ -1,0 +1,233 @@
+/* Digital Vistara - Brand Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary-purple: #8B5C7E;
+  --soft-lavender: #D9CED6;
+  --light-gray: #EDEDED;
+  --silver-gray: #B8B8B8;
+  --white: #FAFAFA;
+  --accent-green: #2F7D5B;
+  
+  --glass-bg: rgba(250, 250, 250, 0.65);
+  --glass-border: rgba(139, 92, 126, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(139, 92, 126, 0.08);
+  
+  --font-inter: 'Inter', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+}
+
+/* Base resets & styles */
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-inter);
+  background-color: var(--white);
+  color: #2D242B;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-outfit);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--light-gray);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-purple);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #734d68;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Dynamic Gradients */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-purple) 0%, var(--accent-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg-light {
+  background: radial-gradient(circle at 10% 20%, rgba(217, 206, 214, 0.3) 0%, rgba(250, 250, 250, 1) 90%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--primary-purple) 0%, #a07293 100%);
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, var(--accent-green) 0%, #3d9d73 100%);
+}
+
+/* Interactive Floating Cards */
+.floating-card {
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.floating-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(139, 92, 126, 0.12);
+  border-color: rgba(139, 92, 126, 0.3);
+}
+
+/* Three.js Canvas overlay */
+#three-canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Micro animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Custom hamburger transition */
+.menu-btn-line {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.menu-open .menu-btn-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menu-open .menu-btn-line:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-open .menu-btn-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Premium Dark Theme variables & overrides */
+html.dark {
+  --white: #120E11; /* Sleek dark charcoal/plum */
+  --glass-bg: rgba(22, 17, 21, 0.75);
+  --glass-border: rgba(217, 206, 214, 0.12);
+  --glass-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4);
+  background-color: var(--white);
+  color: #FAFAFA;
+}
+
+html.dark body {
+  background-color: var(--white);
+  color: #FAFAFA;
+}
+
+/* Global Dark text modifications */
+html.dark .text-gray-900,
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #FAFAFA !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #B8B8B8 !important;
+}
+
+html.dark .bg-brandWhite {
+  background-color: #120E11 !important;
+}
+
+html.dark .bg-brandLightGray,
+html.dark .bg-[#EDEDED]/25 {
+  background-color: #1A1519 !important;
+}
+
+html.dark .glass-panel {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+html.dark .text-[#2D242B] {
+  color: #FAFAFA !important;
+}
+
+html.dark header nav a {
+  color: #D9CED6 !important;
+}
+
+html.dark header nav a.text-\[\#8B5C7E\] {
+  color: #8B5C7E !important;
+}
+
+html.dark footer {
+  background-color: #161115 !important;
+  border-color: rgba(217, 206, 214, 0.08) !important;
+}
+
+html.dark footer a,
+html.dark footer p {
+  color: #B8B8B8 !important;
+}
+
+html.dark footer #footer-email,
+html.dark footer [id^="footer-phone"] {
+  color: #D9CED6 !important;
+}
+
+html.dark select,
+html.dark select option {
+  background-color: #1E171D !important;
+  color: #FAFAFA !important;
+  border-color: rgba(139, 92, 126, 0.2) !important;
+}
+
+html.dark input,
+html.dark textarea {
+  background-color: rgba(30, 23, 29, 0.5) !important;
+  color: #FAFAFA !important;
+  border-color: rgba(139, 92, 126, 0.2) !important;
+}
+
+html.dark select:focus,
+html.dark input:focus,
+html.dark textarea:focus {
+  border-color: var(--primary-purple) !important;
+}
+
+html.dark #mobile-menu {
+  background-color: rgba(18, 14, 17, 0.98) !important;
+  color: #FAFAFA !important;
+}
+
+html.dark #mobile-menu a {
+  color: #D9CED6 !important;
+}
+

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+    window.location.replace('/index.html#/blog-detail?slug=' + (slug || ''));
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="/index.html#/blog">Digital Vistara Blog</a>...</p>
+</body>
+</html>

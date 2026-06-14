@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Digital Vistara</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandPurple: '#8B5C7E',
+            brandLavender: '#D9CED6',
+            brandLightGray: '#EDEDED',
+            brandSilverGray: '#B8B8B8',
+            brandWhite: '#FAFAFA',
+            brandGreen: '#2F7D5B',
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+            poppins: ['Poppins', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+  <!-- Redirect stub handler for direct access guards -->
+  <script src="/admin/assets/js/auth.js"></script>
+</head>
+<body class="bg-brandWhite font-inter text-gray-800 relative min-h-screen">
+
+  <!-- ==================== 1. LOGIN CARD VIEW ==================== -->
+  <div id="admin-login-view" class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden hidden bg-brandWhite">
+    <!-- Subtle back lights -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-brandLavender/35 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-brandGreen/10 blur-[120px] pointer-events-none"></div>
+
+    <!-- Glass panel Login box -->
+    <div class="w-full max-w-md glass-panel p-8 sm:p-12 rounded-3xl border border-white/20 relative z-10 flex flex-col gap-6 shadow-xl">
+      <!-- Header Logo / Title -->
+      <div class="text-center flex flex-col items-center gap-3">
+        <span class="w-12 h-12 rounded-full bg-[#8B5C7E] flex items-center justify-center text-white font-bold text-xl shadow">DV</span>
+        <h1 class="font-outfit font-extrabold text-2xl text-gray-900 mt-2">Digital Vistara Portal</h1>
+        <p class="text-xs text-gray-400 font-medium">Please authorize your credentials to proceed.</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="admin-login-form" class="flex flex-col gap-5 mt-2">
+        <div class="flex flex-col gap-2">
+          <label for="login-email" class="text-[10px] font-extrabold text-gray-500 uppercase tracking-wide">Email Address</label>
+          <input id="login-email" type="email" placeholder="admin@digitalvistara.in" required class="bg-white/50 border border-brandPurple/10 px-4 py-3 rounded-xl focus:outline-none focus:border-brandPurple transition-colors text-sm">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="login-password" class="text-[10px] font-extrabold text-gray-500 uppercase tracking-wide">Password</label>
+          <input id="login-password" type="password" placeholder="••••••••" required class="bg-white/50 border border-brandPurple/10 px-4 py-3 rounded-xl focus:outline-none focus:border-brandPurple transition-colors text-sm">
+        </div>
+
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 px-6 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all text-sm mt-2 focus:outline-none">
+          Log In
+        </button>
+
+        <p id="login-feedback" class="text-xs text-center font-semibold text-red-500 mt-1 hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN LAYOUT SHELL ==================== -->
+  <div id="admin-layout" class="flex min-h-screen pl-64 hidden">
+    <!-- Sidebar injected here -->
+    <div id="admin-sidebar-container"></div>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-grow flex flex-col h-screen overflow-y-auto p-8 lg:p-12">
+
+      <!-- ==================== A. DASHBOARD VIEW ==================== -->
+      <div id="panel-dashboard" class="admin-panel flex flex-col hidden">
+        <!-- Panel Header -->
+        <header class="flex items-center justify-between pb-8 transition-all duration-300">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Dashboard Metrics</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Real-time statistics of the Digital Vistara ecosystem.</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-semibold text-gray-500 bg-white border border-brandPurple/10 px-4 py-2 rounded-full admin-user-tag">
+              Admin
+            </span>
+          </div>
+        </header>
+
+        <!-- Stat Cards Grid -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div class="glass-panel p-6 rounded-2xl border border-white/20 shadow-sm flex flex-col gap-2 bg-white">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Visits</span>
+            <span id="stat-visitors" class="text-3xl font-extrabold text-[#8B5C7E]">-</span>
+          </div>
+          <div class="glass-panel p-6 rounded-2xl border border-white/20 shadow-sm flex flex-col gap-2 bg-white">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Leads</span>
+            <span id="stat-leads" class="text-3xl font-extrabold text-[#2F7D5B]">-</span>
+          </div>
+          <div class="glass-panel p-6 rounded-2xl border border-white/20 shadow-sm flex flex-col gap-2 bg-white">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Active Services</span>
+            <span id="stat-services" class="text-3xl font-extrabold text-gray-900">-</span>
+          </div>
+          <div class="glass-panel p-6 rounded-2xl border border-white/20 shadow-sm flex flex-col gap-2 bg-white">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Published Blogs</span>
+            <span id="stat-blogs" class="text-3xl font-extrabold text-gray-900">-</span>
+          </div>
+        </section>
+
+        <!-- Core Operations -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+          <!-- Recent Inquiries (2/3 width) -->
+          <div class="lg:col-span-2 glass-panel p-6 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-5 bg-white">
+            <div class="flex items-center justify-between border-b border-[#8B5C7E]/5 pb-4">
+              <h3 class="font-outfit font-bold text-lg text-gray-900">Recent Lead Inquiries</h3>
+              <a href="#/leads" class="text-xs font-bold text-brandPurple hover:underline">Manage leads CRM</a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="text-gray-400 font-bold uppercase border-b border-brandPurple/5 pb-2">
+                    <th class="py-3">Contact</th>
+                    <th class="py-3">Business Parameters</th>
+                    <th class="py-3">Status</th>
+                    <th class="py-3 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-leads-tbody">
+                  <tr><td colspan="4" class="py-4 text-center text-gray-400">Querying entries...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Activity & Traffic (1/3 width) -->
+          <div class="flex flex-col gap-8">
+            <div class="glass-panel p-6 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-4 bg-white">
+              <h3 class="font-outfit font-bold text-base text-gray-900 border-b border-[#8B5C7E]/5 pb-3">Traffic Referrers</h3>
+              <div id="traffic-sources-list" class="flex flex-col gap-3 text-xs">
+                <span class="text-gray-400">Fetching referrers...</span>
+              </div>
+            </div>
+            <div class="glass-panel p-6 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-4 bg-white">
+              <h3 class="font-outfit font-bold text-base text-gray-900 border-b border-[#8B5C7E]/5 pb-3">Admin Activity Audit</h3>
+              <div id="activity-logs-list" class="flex flex-col gap-4 text-[10px]">
+                <span class="text-gray-400">Reading logs...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ==================== B. SERVICES VIEW ==================== -->
+      <div id="panel-services" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Capabilities CMS</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Add, update, or disable agency core capabilities.</p>
+          </div>
+          <button id="add-svc-btn" class="gradient-accent text-white font-bold text-xs px-5 py-2.5 rounded-full hover:shadow transition-all flex items-center gap-1.5 focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Service
+          </button>
+        </header>
+
+        <div class="glass-panel rounded-3xl border border-white/20 shadow-sm p-6 overflow-hidden bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="text-gray-400 font-bold uppercase border-b border-brandPurple/5 pb-2">
+                  <th class="py-3 pl-4">Title</th>
+                  <th class="py-3">Icon</th>
+                  <th class="py-3">Price Range</th>
+                  <th class="py-3">Status</th>
+                  <th class="py-3">Order</th>
+                  <th class="py-3 text-right pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="services-tbody">
+                <tr><td colspan="6" class="py-6 text-center text-gray-400">Loading capabilities list...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== C. BLOGS VIEW ==================== -->
+      <div id="panel-blogs" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Insights CMS</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Write, edit, or delete articles and manage categories.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="add-blog-cat-btn" class="glass-panel border border-brandPurple/10 hover:bg-brandPurple/5 text-[#8B5C7E] bg-white font-bold text-xs px-5 py-2.5 rounded-full transition-all focus:outline-none">
+              Add Category
+            </button>
+            <button id="add-blog-btn" class="gradient-accent text-white font-bold text-xs px-5 py-2.5 rounded-full hover:shadow transition-all flex items-center gap-1.5 focus:outline-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Write Post
+            </button>
+          </div>
+        </header>
+
+        <div class="glass-panel rounded-3xl border border-white/20 shadow-sm p-6 overflow-hidden bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="text-gray-400 font-bold uppercase border-b border-brandPurple/5 pb-2">
+                  <th class="py-3 pl-4">Article</th>
+                  <th class="py-3">Category</th>
+                  <th class="py-3">Status</th>
+                  <th class="py-3">Views</th>
+                  <th class="py-3 text-right pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="blogs-tbody">
+                <tr><td colspan="5" class="py-6 text-center text-gray-400">Loading articles...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== D. PORTFOLIO VIEW ==================== -->
+      <div id="panel-portfolio" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Case Studies CMS</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Manage project case studies, custom categories, and hyperlinks.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="add-proj-cat-btn" class="glass-panel border border-brandPurple/10 hover:bg-brandPurple/5 text-[#8B5C7E] bg-white font-bold text-xs px-5 py-2.5 rounded-full transition-all focus:outline-none">
+              Add Category
+            </button>
+            <button id="add-proj-btn" class="gradient-accent text-white font-bold text-xs px-5 py-2.5 rounded-full hover:shadow transition-all flex items-center gap-1.5 focus:outline-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Project
+            </button>
+          </div>
+        </header>
+
+        <div class="glass-panel rounded-3xl border border-white/20 shadow-sm p-6 overflow-hidden bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="text-gray-400 font-bold uppercase border-b border-brandPurple/5 pb-2">
+                  <th class="py-3 pl-4">Project Title</th>
+                  <th class="py-3">Category</th>
+                  <th class="py-3">Live URL</th>
+                  <th class="py-3">Order</th>
+                  <th class="py-3 text-right pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="portfolio-tbody">
+                <tr><td colspan="5" class="py-6 text-center text-gray-400">Loading cases list...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== E. TEAM VIEW ==================== -->
+      <div id="panel-team" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Team Members CMS</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Manage profiles and designation configurations of agency leadership.</p>
+          </div>
+          <button id="add-member-btn" class="gradient-accent text-white font-bold text-xs px-5 py-2.5 rounded-full hover:shadow transition-all flex items-center gap-1.5 focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Founder
+          </button>
+        </header>
+
+        <div id="team-cards-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <p class="text-gray-400 text-sm py-12 text-center col-span-3">Loading team profiles...</p>
+        </div>
+      </div>
+
+      <!-- ==================== F. TESTIMONIALS VIEW ==================== -->
+      <div id="panel-testimonials" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Client Reviews CMS</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Manage client recommendations, scores, and quote details.</p>
+          </div>
+          <button id="add-test-btn" class="gradient-accent text-white font-bold text-xs px-5 py-2.5 rounded-full hover:shadow transition-all flex items-center gap-1.5 focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Recommendation
+          </button>
+        </header>
+
+        <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <p class="text-gray-400 text-sm py-12 text-center col-span-3">Loading recommendations list...</p>
+        </div>
+      </div>
+
+      <!-- ==================== G. LEADS VIEW ==================== -->
+      <div id="panel-leads" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Inquiries CRM</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Review contact form entries, search leads, and export csv records.</p>
+          </div>
+          <button id="export-leads-btn" class="glass-panel bg-white border border-[#2F7D5B]/20 text-brandGreen font-bold text-xs px-5 py-2.5 rounded-full hover:bg-brandGreen/5 transition-all flex items-center gap-1.5 focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV Log
+          </button>
+        </header>
+
+        <!-- Filter bar Controls -->
+        <section class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div class="md:col-span-2 glass-panel bg-white flex items-center px-4 py-2 rounded-full border border-brandPurple/10 text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="leads-search-input" type="text" placeholder="Search leads by name, email, or company parameters..." class="bg-transparent border-none outline-none flex-grow pl-3 text-gray-700">
+          </div>
+          <div class="glass-panel bg-white px-4 py-2 rounded-full border border-brandPurple/10 relative text-xs">
+            <select id="leads-status-select" class="bg-transparent border-none outline-none w-full text-gray-600 font-semibold cursor-pointer">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="contacted">Contacted</option>
+              <option value="closed">Closed / Finished</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Leads Table -->
+        <div class="glass-panel bg-white rounded-3xl border border-white/20 shadow-sm p-6 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="text-gray-400 font-bold uppercase border-b border-brandPurple/5 pb-2">
+                  <th class="py-3 pl-4">Company Contact</th>
+                  <th class="py-3">Parameters</th>
+                  <th class="py-3">Message parameters</th>
+                  <th class="py-3">Status</th>
+                  <th class="py-3 text-right pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-tbody">
+                <tr><td colspan="5" class="py-6 text-center text-gray-400">Loading CRM parameters...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== H. MEDIA VIEW ==================== -->
+      <div id="panel-media" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">Media Library</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Upload files, copy image links, or delete media assets.</p>
+          </div>
+        </header>
+
+        <!-- Upload box -->
+        <section class="mb-10 glass-panel bg-white p-6 rounded-3xl border border-white/20 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+          <form id="media-upload-form" class="flex flex-wrap items-center gap-4 w-full">
+            <div class="flex-grow">
+              <input id="media-file-input" type="file" required class="text-xs text-gray-400 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border file:border-brandPurple/10 file:text-xs file:font-semibold file:bg-brandPurple/5 file:text-brandPurple hover:file:bg-brandPurple/10 cursor-pointer w-full">
+            </div>
+            <button type="submit" class="gradient-accent text-white font-bold text-xs px-6 py-3 rounded-full hover:shadow transition-all focus:outline-none w-full sm:w-auto">
+              Upload File
+            </button>
+          </form>
+        </section>
+
+        <!-- Library Grid -->
+        <section class="glass-panel p-6 rounded-3xl border border-white/20 shadow-sm flex-grow overflow-y-auto bg-white">
+          <h3 class="font-outfit font-bold text-base text-gray-900 border-b border-[#8B5C7E]/5 pb-3.5 mb-6">Library Assets</h3>
+          <div id="media-items-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">
+            <p class="text-gray-400 text-xs text-center col-span-6 py-12">Reading media folder...</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ==================== I. SETTINGS VIEW ==================== -->
+      <div id="panel-settings" class="admin-panel flex flex-col hidden">
+        <header class="flex items-center justify-between pb-8">
+          <div>
+            <h1 class="font-outfit font-extrabold text-2xl lg:text-4xl text-gray-900">System Configurations</h1>
+            <p class="text-xs text-gray-400 font-medium mt-1">Configure global text copy, branding details, and social channels.</p>
+          </div>
+        </header>
+
+        <form id="settings-form" class="flex flex-col gap-8 pb-12">
+          <!-- Section 1: General Info & Brand styling -->
+          <div class="glass-panel bg-white p-6 sm:p-8 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-6">
+            <h3 class="font-outfit font-bold text-lg text-[#8B5C7E] border-b border-brandPurple/5 pb-3">Corporate Parameters</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-sitename" class="text-[10px] font-extrabold text-gray-500 uppercase">Site Name Title</label>
+                <input id="set-sitename" data-key="site_name" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-email" class="text-[10px] font-extrabold text-gray-500 uppercase">Corporate Email</label>
+                <input id="set-email" data-key="contact_email" type="email" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-phone-1" class="text-[10px] font-extrabold text-gray-500 uppercase">Hotline 1 (Nikhil)</label>
+                <input id="set-phone-1" data-key="contact_phone_1" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-phone-2" class="text-[10px] font-extrabold text-gray-500 uppercase">Hotline 2 (Monu)</label>
+                <input id="set-phone-2" data-key="contact_phone_2" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-phone-3" class="text-[10px] font-extrabold text-gray-500 uppercase">Hotline 3 (Gyan)</label>
+                <input id="set-phone-3" data-key="contact_phone_3" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-brandPurple/5 pt-4 mt-1">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-color-primary" class="text-[10px] font-extrabold text-gray-500 uppercase">Brand Purple override (HEX color)</label>
+                <div class="flex gap-2">
+                  <input id="set-color-primary" data-key="brand_primary_purple" type="text" placeholder="#8B5C7E" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple flex-grow">
+                  <input id="color-picker-primary" type="color" class="w-10 h-10 border border-brandPurple/10 rounded-xl cursor-pointer bg-white">
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-color-accent" class="text-[10px] font-extrabold text-gray-500 uppercase">Brand Green override (HEX color)</label>
+                <div class="flex gap-2">
+                  <input id="set-color-accent" data-key="brand_accent_green" type="text" placeholder="#2F7D5B" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple flex-grow">
+                  <input id="color-picker-accent" type="color" class="w-10 h-10 border border-brandPurple/10 rounded-xl cursor-pointer bg-white">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Hero Section Copy -->
+          <div class="glass-panel bg-white p-6 sm:p-8 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-6">
+            <h3 class="font-outfit font-bold text-lg text-[#8B5C7E] border-b border-brandPurple/5 pb-3">Hero Landing Copy</h3>
+            <div class="flex flex-col gap-1.5">
+              <label for="set-herotitle" class="text-[10px] font-extrabold text-gray-500 uppercase">Hero Main Heading</label>
+              <input id="set-herotitle" data-key="hero_title" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="set-herosubtitle" class="text-[10px] font-extrabold text-gray-500 uppercase">Hero Subheading description</label>
+              <textarea id="set-herosubtitle" data-key="hero_subtitle" rows="3" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-cta-primary" class="text-[10px] font-extrabold text-gray-500 uppercase">Primary button text</label>
+                <input id="set-cta-primary" data-key="hero_cta_primary" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-cta-secondary" class="text-[10px] font-extrabold text-gray-500 uppercase">Secondary button text</label>
+                <input id="set-cta-secondary" data-key="hero_cta_secondary" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: About Section Copy -->
+          <div class="glass-panel bg-white p-6 sm:p-8 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-6">
+            <h3 class="font-outfit font-bold text-lg text-[#8B5C7E] border-b border-brandPurple/5 pb-3">About Page Copy</h3>
+            <div class="flex flex-col gap-1.5">
+              <label for="set-abouttitle" class="text-[10px] font-extrabold text-gray-500 uppercase">About Main Heading</label>
+              <input id="set-abouttitle" data-key="about_title" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="set-abouttext" class="text-[10px] font-extrabold text-gray-500 uppercase">About biography description</label>
+              <textarea id="set-abouttext" data-key="about_text" rows="4" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple resize-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Section 4: Social Channels -->
+          <div class="glass-panel bg-white p-6 sm:p-8 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-6">
+            <h3 class="font-outfit font-bold text-lg text-[#8B5C7E] border-b border-brandPurple/5 pb-3">Social Handles</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-soc-linkedin" class="text-[10px] font-extrabold text-gray-500 uppercase">LinkedIn URL</label>
+                <input id="set-soc-linkedin" data-key="social_linkedin" type="url" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-soc-instagram" class="text-[10px] font-extrabold text-gray-500 uppercase">Instagram URL</label>
+                <input id="set-soc-instagram" data-key="social_instagram" type="url" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-soc-facebook" class="text-[10px] font-extrabold text-gray-500 uppercase">Facebook URL</label>
+                <input id="set-soc-facebook" data-key="social_facebook" type="url" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-soc-twitter" class="text-[10px] font-extrabold text-gray-500 uppercase">Twitter URL</label>
+                <input id="set-soc-twitter" data-key="social_twitter" type="url" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: Global SEO Meta settings -->
+          <div class="glass-panel bg-white p-6 sm:p-8 rounded-3xl border border-white/20 shadow-sm flex flex-col gap-6">
+            <h3 class="font-outfit font-bold text-lg text-[#8B5C7E] border-b border-brandPurple/5 pb-3">Global SEO Defaults</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div class="flex flex-col gap-1.5">
+                <label for="set-seo-title" class="text-[10px] font-extrabold text-gray-500 uppercase">Default Meta Title</label>
+                <input id="set-seo-title" data-key="seo_meta_title" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="set-seo-keywords" class="text-[10px] font-extrabold text-gray-500 uppercase">Default Meta Keywords (comma separated)</label>
+                <input id="set-seo-keywords" data-key="seo_meta_keywords" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple">
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="set-seo-desc" class="text-[10px] font-extrabold text-gray-500 uppercase">Default Meta Description</label>
+              <textarea id="set-seo-desc" data-key="seo_meta_description" rows="3" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple resize-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Submit Panel -->
+          <div class="flex items-center justify-end">
+            <button type="submit" class="gradient-accent text-white font-bold px-10 py-4 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all text-xs focus:outline-none">
+              Save Configurations
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== 3. MODALS & DRAWERS ==================== -->
+
+  <!-- A. Service Form Drawer -->
+  <div id="service-drawer" class="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm hidden justify-end">
+    <div class="w-full max-w-lg bg-white h-full shadow-2xl p-8 overflow-y-auto flex flex-col gap-6 relative border-l border-[#8B5C7E]/10">
+      <button id="close-service-drawer" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 focus:outline-none text-lg">✕</button>
+      <div>
+        <h2 id="svc-drawer-title" class="font-outfit font-extrabold text-2xl text-gray-900">Create Capability</h2>
+        <p class="text-xs text-gray-400 mt-1">Configure service parameters.</p>
+      </div>
+      <form id="service-form" class="flex flex-col gap-5 mt-2">
+        <input type="hidden" id="service-id">
+        <div class="flex flex-col gap-1.5">
+          <label for="svc-title" class="text-[10px] font-extrabold text-gray-500 uppercase">Service Title</label>
+          <input id="svc-title" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="svc-icon" class="text-[10px] font-extrabold text-gray-500 uppercase">GSAP Icon Slug</label>
+          <select id="svc-icon" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+            <option value="briefcase">Briefcase (General)</option>
+            <option value="code">Code (Dev)</option>
+            <option value="trending-up">Trending Up (Strategy)</option>
+            <option value="activity">Activity (Analytics)</option>
+            <option value="feather">Feather (Design)</option>
+            <option value="users">Users (Social Growth)</option>
+            <option value="search">Search (SEO)</option>
+            <option value="map-pin">Map Pin (Local SEO)</option>
+            <option value="video">Video (Reels/Editing)</option>
+            <option value="cpu">CPU (Automation)</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="svc-price" class="text-[10px] font-extrabold text-gray-500 uppercase">Pricing Tier Label</label>
+          <input id="svc-price" type="text" placeholder="Starting at $800" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="svc-status" class="text-[10px] font-extrabold text-gray-500 uppercase">Status</label>
+            <select id="svc-status" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="svc-order" class="text-[10px] font-extrabold text-gray-500 uppercase">Sort Order</label>
+            <input id="svc-order" type="number" value="0" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="svc-desc" class="text-[10px] font-extrabold text-gray-500 uppercase">Description</label>
+          <textarea id="svc-desc" rows="4" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs resize-none bg-white"></textarea>
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl hover:shadow text-xs mt-2 focus:outline-none">
+          Save Service
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- B. Blog Form Drawer -->
+  <div id="blog-drawer" class="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm hidden justify-end">
+    <div class="w-full max-w-2xl bg-white h-full shadow-2xl p-8 overflow-y-auto flex flex-col gap-6 relative border-l border-[#8B5C7E]/10">
+      <button id="close-blog-drawer" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 focus:outline-none text-lg">✕</button>
+      <div>
+        <h2 id="blog-drawer-title" class="font-outfit font-extrabold text-2xl text-gray-900">Write Blog Post</h2>
+        <p class="text-xs text-gray-400 mt-1">Author article parameters and configure metadata.</p>
+      </div>
+      <form id="blog-form" class="flex flex-col gap-5 mt-1">
+        <input type="hidden" id="blog-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="blog-title" class="text-[10px] font-extrabold text-gray-500 uppercase">Title</label>
+            <input id="blog-title" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="blog-slug" class="text-[10px] font-extrabold text-gray-500 uppercase">URL Slug (lowercase, hyphenated)</label>
+            <input id="blog-slug" type="text" required placeholder="eg-marketing-growth" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="blog-cat-select" class="text-[10px] font-extrabold text-gray-500 uppercase">Category</label>
+            <select id="blog-cat-select" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="blog-status" class="text-[10px] font-extrabold text-gray-500 uppercase">Publish State</label>
+            <select id="blog-status" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+              <option value="draft">Draft (Private)</option>
+              <option value="published">Published (Public)</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="blog-image" class="text-[10px] font-extrabold text-gray-500 uppercase">Featured Image</label>
+            <input id="blog-image" type="file" accept="image/*" class="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brandPurple/5 file:text-brandPurple hover:file:bg-brandPurple/10">
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="blog-summary" class="text-[10px] font-extrabold text-gray-500 uppercase">Summary (Short preview text)</label>
+          <input id="blog-summary" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+        </div>
+        <!-- Rich Text Editor -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-extrabold text-gray-500 uppercase">Article Content</label>
+          <div class="h-64 rounded-xl border border-brandPurple/15 overflow-hidden flex flex-col bg-white">
+            <div id="quill-editor" class="flex-grow bg-white text-xs"></div>
+          </div>
+        </div>
+        <!-- SEO Metadata -->
+        <div class="border-t border-brandPurple/5 pt-4 mt-2">
+          <h3 class="font-outfit font-bold text-xs text-[#8B5C7E] uppercase mb-4">Search Engine Optimization (SEO)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label for="blog-seo-title" class="text-[10px] font-extrabold text-gray-500 uppercase">SEO Title</label>
+              <input id="blog-seo-title" type="text" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="blog-seo-keywords" class="text-[10px] font-extrabold text-gray-500 uppercase">SEO Keywords (comma separated)</label>
+              <input id="blog-seo-keywords" type="text" placeholder="strategy, growth, technology" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5 mt-4">
+            <label for="blog-seo-desc" class="text-[10px] font-extrabold text-gray-500 uppercase">SEO Description (Meta Tag)</label>
+            <textarea id="blog-seo-desc" rows="2" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple resize-none bg-white"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl hover:shadow text-xs mt-2 focus:outline-none">
+          Save Article
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- C. Blog Category Modal -->
+  <div id="blog-category-modal" class="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm hidden items-center justify-center p-6">
+    <div class="w-full max-w-sm glass-panel p-8 rounded-3xl border border-white/20 shadow-xl flex flex-col gap-4 relative bg-white">
+      <button id="close-blog-cat-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">✕</button>
+      <div>
+        <h3 class="font-outfit font-bold text-lg text-gray-900">Add Blog Category</h3>
+        <p class="text-[10px] text-gray-400 mt-0.5">Define category indexing keys.</p>
+      </div>
+      <form id="blog-cat-form" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label for="blog-cat-name" class="text-[10px] font-extrabold text-gray-500 uppercase">Category Name</label>
+          <input id="blog-cat-name" type="text" required placeholder="Growth Strategy" class="border border-brandPurple/10 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="blog-cat-slug" class="text-[10px] font-extrabold text-gray-500 uppercase">Slug</label>
+          <input id="blog-cat-slug" type="text" required placeholder="growth-strategy" class="border border-brandPurple/10 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl text-xs focus:outline-none">
+          Add Category
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- D. Portfolio Category Modal -->
+  <div id="portfolio-category-modal" class="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm hidden items-center justify-center p-6">
+    <div class="w-full max-w-sm glass-panel p-8 rounded-3xl border border-white/20 shadow-xl flex flex-col gap-4 relative bg-white">
+      <button id="close-portfolio-cat-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">✕</button>
+      <div>
+        <h3 class="font-outfit font-bold text-lg text-gray-900">Add Portfolio Category</h3>
+        <p class="text-[10px] text-gray-400 mt-0.5">Define category indexing keys.</p>
+      </div>
+      <form id="portfolio-cat-form" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label for="portfolio-cat-name" class="text-[10px] font-extrabold text-gray-500 uppercase">Category Name</label>
+          <input id="portfolio-cat-name" type="text" required placeholder="Web Development" class="border border-brandPurple/10 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="portfolio-cat-slug" class="text-[10px] font-extrabold text-gray-500 uppercase">Slug</label>
+          <input id="portfolio-cat-slug" type="text" required placeholder="web-development" class="border border-brandPurple/10 px-4 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl text-xs focus:outline-none">
+          Add Category
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- E. Project Form Drawer -->
+  <div id="project-drawer" class="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm hidden justify-end">
+    <div class="w-full max-w-lg bg-white h-full shadow-2xl p-8 overflow-y-auto flex flex-col gap-6 relative border-l border-[#8B5C7E]/10">
+      <button id="close-project-drawer" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 focus:outline-none text-lg">✕</button>
+      <div>
+        <h2 id="project-drawer-title" class="font-outfit font-extrabold text-2xl text-gray-900">Add Project Case</h2>
+        <p class="text-xs text-gray-400 mt-1">Configure project specifications.</p>
+      </div>
+      <form id="project-form" class="flex flex-col gap-5 mt-2">
+        <input type="hidden" id="project-id">
+        <div class="flex flex-col gap-1.5">
+          <label for="proj-title" class="text-[10px] font-extrabold text-gray-500 uppercase">Project Title</label>
+          <input id="proj-title" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="proj-cat" class="text-[10px] font-extrabold text-gray-500 uppercase">Category</label>
+            <select id="proj-cat" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="proj-order" class="text-[10px] font-extrabold text-gray-500 uppercase">Sort Order</label>
+            <input id="proj-order" type="number" value="0" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="proj-image" class="text-[10px] font-extrabold text-gray-500 uppercase">Project Screenshot</label>
+            <input id="proj-image" type="file" accept="image/*" class="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brandPurple/5 file:text-brandPurple hover:file:bg-brandPurple/10">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="proj-url" class="text-[10px] font-extrabold text-gray-500 uppercase">Project Live Link (URL)</label>
+            <input id="proj-url" type="url" placeholder="https://..." class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="proj-desc" class="text-[10px] font-extrabold text-gray-500 uppercase">Description (Brief summary)</label>
+          <textarea id="proj-desc" rows="4" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs resize-none bg-white"></textarea>
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl hover:shadow text-xs mt-2 focus:outline-none">
+          Save Project
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- F. Team Member Drawer -->
+  <div id="member-drawer" class="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm hidden justify-end">
+    <div class="w-full max-w-lg bg-white h-full shadow-2xl p-8 overflow-y-auto flex flex-col gap-6 relative border-l border-[#8B5C7E]/10">
+      <button id="close-member-drawer" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 focus:outline-none text-lg">✕</button>
+      <div>
+        <h2 id="team-drawer-title" class="font-outfit font-extrabold text-2xl text-gray-900">Add Team Profile</h2>
+        <p class="text-xs text-gray-400 mt-1">Configure profile details.</p>
+      </div>
+      <form id="member-form" class="flex flex-col gap-5 mt-2">
+        <input type="hidden" id="member-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="mem-name" class="text-[10px] font-extrabold text-gray-500 uppercase">Founder Name</label>
+            <input id="mem-name" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="mem-designation" class="text-[10px] font-extrabold text-gray-500 uppercase">Designation</label>
+            <input id="mem-designation" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="mem-photo" class="text-[10px] font-extrabold text-gray-500 uppercase">Photo</label>
+            <input id="mem-photo" type="file" accept="image/*" class="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brandPurple/5 file:text-brandPurple hover:file:bg-brandPurple/10">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="mem-order" class="text-[10px] font-extrabold text-gray-500 uppercase">Sort Order</label>
+            <input id="mem-order" type="number" value="0" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="mem-linkedin" class="text-[10px] font-extrabold text-gray-500 uppercase">LinkedIn Profile Link</label>
+          <input id="mem-linkedin" type="url" placeholder="https://linkedin.com/in/..." class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="mem-bio" class="text-[10px] font-extrabold text-gray-500 uppercase">Biography</label>
+          <textarea id="mem-bio" rows="4" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs resize-none bg-white"></textarea>
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl hover:shadow text-xs mt-2 focus:outline-none">
+          Save Profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- G. Testimonial Drawer -->
+  <div id="testimonial-drawer" class="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm hidden justify-end">
+    <div class="w-full max-w-lg bg-white h-full shadow-2xl p-8 overflow-y-auto flex flex-col gap-6 relative border-l border-[#8B5C7E]/10">
+      <button id="close-testimonial-drawer" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 focus:outline-none text-lg">✕</button>
+      <div>
+        <h2 id="test-drawer-title" class="font-outfit font-extrabold text-2xl text-gray-900">Add Recommendation</h2>
+        <p class="text-xs text-gray-400 mt-1">Configure client details.</p>
+      </div>
+      <form id="testimonial-form" class="flex flex-col gap-5 mt-2">
+        <input type="hidden" id="testimonial-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="test-name" class="text-[10px] font-extrabold text-gray-500 uppercase">Client Name</label>
+            <input id="test-name" type="text" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="test-company" class="text-[10px] font-extrabold text-gray-500 uppercase">Client Company</label>
+            <input id="test-company" type="text" required placeholder="Sharma Logistics" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="test-image" class="text-[10px] font-extrabold text-gray-500 uppercase">Client Photo</label>
+            <input id="test-image" type="file" accept="image/*" class="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brandPurple/5 file:text-brandPurple hover:file:bg-brandPurple/10">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="test-rating" class="text-[10px] font-extrabold text-gray-500 uppercase">Score (1-5 Stars)</label>
+            <select id="test-rating" class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs bg-white">
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars</option>
+              <option value="3">3 Stars</option>
+              <option value="2">2 Stars</option>
+              <option value="1">1 Star</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="test-review" class="text-[10px] font-extrabold text-gray-500 uppercase">Review text</label>
+          <textarea id="test-review" rows="5" required class="border border-brandPurple/15 px-4 py-2.5 rounded-xl focus:outline-none focus:border-brandPurple text-xs resize-none bg-white"></textarea>
+        </div>
+        <button type="submit" class="gradient-accent text-white font-bold py-3.5 rounded-xl hover:shadow text-xs mt-2 focus:outline-none">
+          Save Recommendation
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- H. Lead details Modal -->
+  <div id="lead-modal" class="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm hidden items-center justify-center p-6">
+    <div class="w-full max-w-lg glass-panel p-8 rounded-3xl border border-white/20 shadow-2xl flex flex-col gap-5 relative bg-white">
+      <button id="close-lead-modal" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 focus:outline-none">✕</button>
+      <div>
+        <h3 id="modal-lead-name" class="font-outfit font-extrabold text-xl text-gray-900">Lead Detail</h3>
+        <p id="modal-lead-meta" class="text-[10px] text-gray-400 mt-0.5">Parameters details.</p>
+      </div>
+      <div class="flex flex-col gap-4 text-xs">
+        <div class="grid grid-cols-2 gap-4 border-b border-[#8B5C7E]/5 pb-4">
+          <div>
+            <span class="text-[9px] font-extrabold text-gray-400 uppercase">Phone Number</span>
+            <p id="modal-lead-phone" class="font-bold text-gray-800 mt-0.5"></p>
+          </div>
+          <div>
+            <span class="text-[9px] font-extrabold text-gray-400 uppercase">Email</span>
+            <p id="modal-lead-email" class="font-bold text-gray-800 mt-0.5"></p>
+          </div>
+        </div>
+        <div class="border-b border-[#8B5C7E]/5 pb-4">
+          <span class="text-[9px] font-extrabold text-gray-400 uppercase">Message</span>
+          <p id="modal-lead-message" class="text-gray-600 mt-1 leading-relaxed"></p>
+        </div>
+        <form id="lead-notes-form" class="flex flex-col gap-4">
+          <input type="hidden" id="modal-lead-id">
+          <div class="flex flex-col gap-1.5">
+            <label for="modal-lead-status" class="text-[9px] font-extrabold text-gray-400 uppercase">Leads Status</label>
+            <select id="modal-lead-status" class="border border-brandPurple/15 px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-brandPurple bg-white">
+              <option value="pending">Pending</option>
+              <option value="contacted">Contacted</option>
+              <option value="closed">Closed / Finished</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="modal-lead-notes" class="text-[9px] font-extrabold text-gray-400 uppercase">Follow-up Notes (Internal)</label>
+            <textarea id="modal-lead-notes" rows="3" placeholder="Enter follow-up call outcomes or pipeline updates..." class="border border-brandPurple/15 px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-brandPurple resize-none bg-white"></textarea>
+          </div>
+          <button type="submit" class="gradient-accent text-white font-bold py-3 rounded-xl text-xs focus:outline-none">
+            Update Lead Status
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. SCRIPTS ==================== -->
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+  <script src="/admin/assets/js/admin.js"></script>
+</body>
+</html>
